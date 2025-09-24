@@ -252,8 +252,9 @@ class AsyncCacheTransport(httpx.AsyncBaseTransport):
     ) -> Response:
         if cached:
             assert metadata
-            metadata["number_of_uses"] += 1
-            await self._storage.update_metadata(key=key, request=request, response=response, metadata=metadata)
+            if self._controller._update_metadata_on_hit:
+                metadata["number_of_uses"] += 1
+                await self._storage.update_metadata(key=key, request=request, response=response, metadata=metadata)
             response.extensions["from_cache"] = True  # type: ignore[index]
             response.extensions["cache_metadata"] = metadata  # type: ignore[index]
         else:
